@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
-    public function register(UserRegisterRequest $request): \Illuminate\Http\JsonResponse
+    public function register(UserRegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
 
