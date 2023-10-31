@@ -9,8 +9,8 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -40,9 +40,21 @@ class UserController extends Controller
         return $this->respondWithToken($token);
     }
 
-        $token = Auth::user()->createToken("auth_token");
+    public function logout(): JsonResponse
+    {
+        try {
+            Auth::logout();
 
-        return $this->respondWithToken($token->plainTextToken);
+            return response()->json([
+                "success" => true,
+                "message" => "User logged out successfully",
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Something went wrong",
+            ], 500);
+        }
     }
 
     public function respondWithToken(string $token): JsonResponse
