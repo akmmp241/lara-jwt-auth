@@ -20,8 +20,6 @@ Route::middleware('api')->group(function () {
     Route::post('/login', [UserController::class, 'login'])->name('login');
     Route::delete('/logout', [UserController::class, 'logout'])->name('logout');
     Route::get('/user', [UserController::class, 'get'])->name('user');
+    Route::put('/user', [UserController::class, 'update'])->name('update');
 });
 
-
-//Route::middleware('auth:sanctum')->group(function () {
-//});

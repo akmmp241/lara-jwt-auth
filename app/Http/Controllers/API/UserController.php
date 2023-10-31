@@ -3,15 +3,17 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+use JetBrains\PhpStorm\NoReturn;
 
 class UserController extends Controller
 {
@@ -24,7 +26,7 @@ class UserController extends Controller
         return response()->json([
             "message" => "User created successfully",
             "user" => new UserResource($user),
-        ])->setStatusCode(201);
+        ])->setStatusCode(Response::HTTP_CREATED);
     }
 
     public function login(UserLoginRequest $request): JsonResponse
@@ -35,7 +37,7 @@ class UserController extends Controller
             throw new HttpResponseException(response()->json([
                 "success" => false,
                 "message" => "Username or password is incorrect",
-            ], 401));
+            ], Response::HTTP_UNAUTHORIZED));
         }
 
         return $this->respondWithToken($token);
@@ -54,7 +56,7 @@ class UserController extends Controller
             return response()->json([
                 "success" => false,
                 "message" => "Failed to logout user",
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -71,8 +73,31 @@ class UserController extends Controller
                 "success" => false,
                 "message" => "Failed to get user",
                 "user" => null,
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public function update(UpdateUserRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        try {
+            $user = User::query()->findOrFail($data['user_id']);
+            $user->fill($data);
+            $user->save();
+        } catch (\Exception $exception) {
+            return response()->json([
+                "success" => false,
+                "message" => "Failed to update user",
+                "user" => null,
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            "success" => true,
+            "message" => "User updated successfully",
+            "user" => new UserResource($user),
+        ]);
     }
 
     public function respondWithToken(string $token): JsonResponse

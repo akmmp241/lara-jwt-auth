@@ -7,11 +7,12 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Laravel-jwt </title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
 </head>
 <body>
 
 <script>
-    let token = localStorage.getItem('user_token');
+    let token = Cookies.get('user_token');
 
     if (window.location.pathname === '/login' || window.location.pathname === '/register') {
         if (token) {

@@ -8,15 +8,16 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
-class UserLoginRequest extends FormRequest
+class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return Auth::guest();
+        return Auth::check();
     }
 
     /**
@@ -27,9 +28,19 @@ class UserLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "email" => ["required", "email"],
-            "password" => ["required", "min:8", "max:255"],
+            "name" => ["required", "string", "max:255", "min:2"],
+            "email" => ["required", "email", Rule::unique('users', 'email')->ignore(Auth::id())],
+            "user_id" => ["required", "numeric"]
         ];
+    }
+
+    protected function failedAuthorization(): void
+    {
+        throw new HttpResponseException(response([
+            "error" => [
+                "message" => "You are not authorized to perform this action",
+            ],
+        ], Response::HTTP_FORBIDDEN));
     }
 
     protected function failedValidation(Validator $validator): void

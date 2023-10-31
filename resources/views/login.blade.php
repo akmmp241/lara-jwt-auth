@@ -28,7 +28,7 @@
         axios.post('/api/login', formData)
             .then(function (response) {
                 if (response.status === 200 && response.data.success) {
-                    localStorage.setItem('user_token', response.data.token_type + ' ' + response.data.access_token);
+                    Cookies.set('user_token', response.data.token_type + ' ' + response.data.access_token, {expires: 1});
                     window.open('/profile', '_self')
                 }
             })
