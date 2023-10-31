@@ -8,3 +8,18 @@
     <title>Laravel-jwt </title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
+<body>
+
+<script>
+    let token = localStorage.getItem('user_token');
+
+    if (window.location.pathname === '/login' || window.location.pathname === '/register') {
+        if (token) {
+            window.open('/profile', '_self');
+        }
+    } else {
+        if (!token) {
+            window.open('/login', '_self');
+        }
+    }
+</script>

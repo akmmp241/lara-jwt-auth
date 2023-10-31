@@ -52,7 +52,7 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 "success" => false,
-                "message" => "Something went wrong",
+                "message" => "Failed to logout user",
             ], 500);
         }
     }
