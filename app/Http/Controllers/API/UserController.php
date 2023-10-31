@@ -9,6 +9,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -59,10 +60,19 @@ class UserController extends Controller
 
     public function get(): JsonResponse
     {
-        return response()->json([
-            "success" => true,
-            "user" => new UserResource(Auth::user()),
-        ]);
+        try {
+            return response()->json([
+                "success" => true,
+                "message" => "User retrieved successfully",
+                "user" => new UserResource(Auth::user()),
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                "success" => false,
+                "message" => "Failed to get user",
+                "user" => null,
+            ], 500);
+        }
     }
 
     public function respondWithToken(string $token): JsonResponse
