@@ -47,7 +47,7 @@
     });
 
     document.querySelector('.logout').addEventListener('click', () => {
-        axios.get('/api/logout', {
+        axios.delete('/api/logout', {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('user_token')}`
             }

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('api')->group(function () {
     Route::post('/register', [UserController::class, 'register'])->name('register');
     Route::post('/login', [UserController::class, 'login'])->name('login');
-    Route::get('/logout', [UserController::class, 'logout'])->name('logout');
+    Route::delete('/logout', [UserController::class, 'logout'])->name('logout');
     Route::get('/user', [UserController::class, 'get'])->name('user');
 });
 
