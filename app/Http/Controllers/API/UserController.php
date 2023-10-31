@@ -57,6 +57,14 @@ class UserController extends Controller
         }
     }
 
+    public function get(): JsonResponse
+    {
+        return response()->json([
+            "success" => true,
+            "user" => new UserResource(Auth::user()),
+        ]);
+    }
+
     public function respondWithToken(string $token): JsonResponse
     {
         return response()->json([
