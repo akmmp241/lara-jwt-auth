@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests;
 
+use http\Env\Response;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Response;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response as ResponseAlias;
 
 class UserLoginRequest extends FormRequest
 {
@@ -34,8 +34,8 @@ class UserLoginRequest extends FormRequest
 
     protected function failedValidation(Validator $validator): void
     {
-        throw new \HttpResponseException(response([
+        throw new HttpResponseException(response([
             "errors" => $validator->errors(),
-        ], ResponseAlias::HTTP_BAD_REQUEST));
+        ], 400));
     }
 }

@@ -30,12 +30,15 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        if (!Auth::attempt($data)) {
+        if (!$token = Auth::attempt($data)) {
             throw new HttpResponseException(response()->json([
                 "success" => false,
                 "message" => "Username or password is incorrect",
-            ], Response::HTTP_UNAUTHORIZED));
+            ], 401));
         }
+
+        return $this->respondWithToken($token);
+    }
 
         $token = Auth::user()->createToken("auth_token");
 

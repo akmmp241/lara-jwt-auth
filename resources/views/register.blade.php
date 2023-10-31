@@ -1,7 +1,5 @@
 <h1>User Registration</h1>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-
 <form id="register-form">
     <label>
         <span class="error name_err"></span> <br>
