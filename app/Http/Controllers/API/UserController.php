@@ -90,6 +90,13 @@ class UserController extends Controller
 
         try {
             $user = User::query()->findOrFail($data['user_id']);
+            if ($user->email !== $data['email']) {
+                $user->email_verified_at = null;
+                $user->remember_token = null;
+            }
+
+            RateLimiter::clear('sendMail:' . $user->id);
+
             $user->fill($data);
             $user->save();
         } catch (\Exception $exception) {
@@ -181,6 +188,19 @@ class UserController extends Controller
         return view('verifiedMail', [
             "message" => "Email verification success"
         ]);
+    }
+
+    public function refreshToken()
+    {
+        if (!Auth::check()) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "message" => "You're not authorized to perform this action"
+                ]
+            ], Response::HTTP_UNAUTHORIZED));
+        }
+
+        return $this->respondWithToken(auth()->refresh());
     }
 
     public function respondWithToken(string $token): JsonResponse
