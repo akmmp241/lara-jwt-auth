@@ -20,6 +20,7 @@ Route::middleware('api')->group(function () {
     Route::post('/login', [UserController::class, 'login'])->name('login');
     Route::delete('/logout', [UserController::class, 'logout'])->name('logout');
     Route::get('/user', [UserController::class, 'get'])->name('user');
-    Route::put('/user', [UserController::class, 'update'])->name('update');
+    Route::put('/user', [UserController::class, 'update'])->name('user.update');
+    Route::get('/user/send-verify-email', [UserController::class, 'sendMail']);
 });
 

@@ -7,13 +7,19 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\VerifyEmail;
 use App\Models\User;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use JetBrains\PhpStorm\NoReturn;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -69,6 +75,7 @@ class UserController extends Controller
                 "user" => new UserResource(Auth::user()),
             ]);
         } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
             return response()->json([
                 "success" => false,
                 "message" => "Failed to get user",
@@ -97,6 +104,71 @@ class UserController extends Controller
             "success" => true,
             "message" => "User updated successfully",
             "user" => new UserResource($user),
+        ]);
+    }
+
+    public function sendMail(Request $request): JsonResponse
+    {
+        if (!Auth::check()) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "message" => "You're not authorized to perform this action"
+                ]
+            ], Response::HTTP_UNAUTHORIZED));
+        }
+
+        if ($request->user()->getRememberTokenName() && $request->user()->email_verified_at) {
+            throw new HttpResponseException(response([
+                "errors" => [
+                    "message" => "Email already verified"
+                ]
+            ], Response::HTTP_OK));
+        }
+
+        $random = Str::random(40);
+        $domain = URL::to('/');
+        $url = $domain . '/verify-mail/' . $random;
+
+        $data['url'] = $url;
+        $data['email'] = Auth::user()->email;
+        $data['title'] = "Email Verification";
+        $data['body'] = "Please click below here to verify your email";
+
+        $data = [
+            "url" => $url,
+            "email" => Auth::user()->email,
+            "title" => "Email Verification",
+            "body" => "Please click below here to verify your email"
+        ];
+
+        Mail::to($data['email'])->send(new VerifyEmail($data));
+
+        Auth::user()->setRememberToken($random);
+        Auth::user()->save();
+
+        return response()->json([
+            "success" => true,
+            "message" => "Mail sent successfully"
+        ]);
+    }
+
+    public function verifyEmail(string $token): View
+    {
+        $user = User::query()->where('remember_token', $token)->first();
+
+        abort_if(!$user, Response::HTTP_UNAUTHORIZED);
+
+        if ($user->email_verified_at) {
+            return view('verifiedMail', [
+                "message" => "Email already verified"
+            ]);
+        }
+
+        $user->email_verified_at = now();
+        $user->save();
+
+        return view('verifiedMail', [
+            "message" => "Email verification success"
         ]);
     }
 

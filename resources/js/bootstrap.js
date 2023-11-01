@@ -5,7 +5,9 @@
  */
 
 import axios from 'axios';
+import cookie from "js-cookie";
 window.axios = axios;
+window.cookie = cookie;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 

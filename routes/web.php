@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,3 +29,5 @@ Route::get('/login', function () {
 Route::get('/profile', function () {
     return view('profile');
 });
+
+Route::get('/verify-mail/{token}', [UserController::class, 'verifyEmail'])->name('verify-email');

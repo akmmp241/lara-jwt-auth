@@ -40,7 +40,7 @@ class UpdateUserRequest extends FormRequest
             "error" => [
                 "message" => "You are not authorized to perform this action",
             ],
-        ], Response::HTTP_FORBIDDEN));
+        ], Response::HTTP_UNAUTHORIZED));
     }
 
     protected function failedValidation(Validator $validator): void

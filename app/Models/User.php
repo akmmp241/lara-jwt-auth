@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'password' => 'hashed',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'email_verified_at' => 'datetime'
     ];
 
     public function getJWTIdentifier(): mixed
