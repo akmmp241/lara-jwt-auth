@@ -27,7 +27,7 @@ axios.get('/api/user', {
 });
 
 if (!verify.innerHTML.includes('verified')) {
-    verify.addEventListener('click', (e) => {
+    verify.addEventListener('click', () => {
         axios.get('/api/user/send-verify-email', {
             headers: {
                 Authorization: `Bearer ${cookie.get('userToken')}`
@@ -35,13 +35,10 @@ if (!verify.innerHTML.includes('verified')) {
         }).then(res => {
             if (res.data.success) {
                 message.innerHTML = "we sent you a verification email, please check your email";
-                setTimeout(() => {
-                    message.innerHTML = '';
-                }, 5000);
             }
         }).catch(err => {
             if (!err.response.data.success) {
-                message.innerHTML = "Failed to send verification email";
+                message.innerHTML = err.response.data.message;
             }
         });
     });

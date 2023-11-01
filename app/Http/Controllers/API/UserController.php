@@ -109,6 +109,15 @@ class UserController extends Controller
 
     public function sendMail(Request $request): JsonResponse
     {
+        if (RateLimiter::tooManyAttempts('sendMail:' . Auth::id(), 1)) {
+            $seconds = RateLimiter::availableIn('sendMail:' . Auth::id());
+            throw new HttpResponseException(response([
+                "success" => false,
+                "message" => "You can send new verification after $seconds seconds",
+            ], Response::HTTP_TOO_MANY_REQUESTS));
+        }
+
+
         if (!Auth::check()) {
             throw new HttpResponseException(response([
                 "errors" => [
@@ -145,6 +154,8 @@ class UserController extends Controller
 
         Auth::user()->setRememberToken($random);
         Auth::user()->save();
+
+        RateLimiter::hit('sendMail:' . Auth::id());
 
         return response()->json([
             "success" => true,
