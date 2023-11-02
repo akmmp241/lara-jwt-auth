@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+
 Route::middleware('api')->group(function () {
     Route::post('/register', [UserController::class, 'register'])->name('register');
     Route::post('/login', [UserController::class, 'login'])->name('login');
@@ -22,5 +24,6 @@ Route::middleware('api')->group(function () {
     Route::get('/user', [UserController::class, 'get'])->name('user');
     Route::put('/user', [UserController::class, 'update'])->name('user.update');
     Route::get('/user/send-verify-email', [UserController::class, 'sendMail']);
+    Route::post('/forget-password', [UserController::class, 'forgetPassword']);
 });
 

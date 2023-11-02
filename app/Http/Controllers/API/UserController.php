@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ForgetPasswordRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Mail\ForgetPasswordEmail;
 use App\Mail\VerifyEmail;
+use App\Models\PasswordReset;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -190,7 +193,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function refreshToken()
+    public function refreshToken(): JsonResponse
     {
         if (!Auth::check()) {
             throw new HttpResponseException(response([
@@ -201,6 +204,58 @@ class UserController extends Controller
         }
 
         return $this->respondWithToken(auth()->refresh());
+    }
+
+    public function forgetPassword(ForgetPasswordRequest $request): JsonResponse
+    {
+        if (RateLimiter::tooManyAttempts('forgetPassword:' . $request->email, 1)) {
+            $seconds = RateLimiter::availableIn('forgetPassword:' . $request->email);
+            throw new HttpResponseException(response([
+                "success" => false,
+                "message" => "You can after $seconds seconds",
+            ], Response::HTTP_TOO_MANY_REQUESTS));
+        }
+
+        $data = $request->validated();
+
+        try {
+            $user = User::query()->where('email', $data['email'])->first();
+
+            $token = Str::random(40);
+            $domain = URL::to('/');
+            $url = $domain . '/reset-password?token=' . $token;
+
+            $data = [
+                "url" => $url,
+                "email" => $user->email,
+                "title" => "Reset Password",
+                "body" => "Please click below here to reset your password"
+            ];
+
+            Mail::to($data['email'])->send(new ForgetPasswordEmail($data));
+
+            PasswordReset::query()->updateOrCreate(
+                ['email' => $data['email']],
+                [
+                    "email" => $data['email'],
+                    "token" => $token,
+                    "created_at" => now()
+                ]
+            );
+
+            RateLimiter::hit('forgetPassword:' . $request->email);
+
+            return response()->json([
+                "success" => true,
+                "message" => "Email sent successfully"
+            ]);
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
+            throw new HttpResponseException(\response([
+                "success" => false,
+                "message" => "Failed to send email"
+            ], Response::HTTP_INTERNAL_SERVER_ERROR));
+        }
     }
 
     public function respondWithToken(string $token): JsonResponse
