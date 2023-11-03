@@ -17,4 +17,6 @@
 
 <p class="result"></p>
 
+<a href="{{ route('forget-password') }}">forget password</a>
+
 @vite('resources/js/login.js')

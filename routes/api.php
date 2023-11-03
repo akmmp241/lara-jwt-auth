@@ -25,5 +25,6 @@ Route::middleware('api')->group(function () {
     Route::put('/user', [UserController::class, 'update'])->name('user.update');
     Route::get('/user/send-verify-email', [UserController::class, 'sendMail']);
     Route::post('/forget-password', [UserController::class, 'forgetPassword']);
+    Route::patch('/reset-password', [UserController::class, 'updatePassword']);
 });
 

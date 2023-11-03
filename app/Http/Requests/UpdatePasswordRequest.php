@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class ForgetPasswordRequest extends FormRequest
+class UpdatePasswordRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -28,22 +28,17 @@ class ForgetPasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "email" => ["required", "email"]
+            'password' => ['required', 'confirmed', 'min:8'],
+            'id' => ['required', Rule::exists('users', 'id')],
+            "token" => []
         ];
     }
 
-    protected function failedValidation(Validator $validator): void
+    protected function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
-            "errors" => $validator->errors(),
-        ], Response::HTTP_UNPROCESSABLE_ENTITY));
-    }
-
-    protected function failedAuthorization(): void
-    {
-        throw new HttpResponseException(response()->json([
-            "success" => false,
-            "message" => "You are already logged in",
-        ], Response::HTTP_UNAUTHORIZED));
+            'success' => false,
+            'message' => $validator->errors(),
+        ], Response::HTTP_BAD_REQUEST));
     }
 }

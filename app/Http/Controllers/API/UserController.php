@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgetPasswordRequest;
+use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Http\Requests\UserLoginRequest;
 use App\Http\Requests\UserRegisterRequest;
@@ -208,8 +209,8 @@ class UserController extends Controller
 
     public function forgetPassword(ForgetPasswordRequest $request): JsonResponse
     {
-        if (RateLimiter::tooManyAttempts('forgetPassword:' . $request->email, 1)) {
-            $seconds = RateLimiter::availableIn('forgetPassword:' . $request->email);
+        if (RateLimiter::tooManyAttempts('forgetPassword:' . $request->get('email'), 1)) {
+            $seconds = RateLimiter::availableIn('forgetPassword:' . $request->get('email'));
             throw new HttpResponseException(response([
                 "success" => false,
                 "message" => "You can after $seconds seconds",
@@ -219,7 +220,7 @@ class UserController extends Controller
         $data = $request->validated();
 
         try {
-            $user = User::query()->where('email', $data['email'])->first();
+            $user = User::query()->where('email', $data['email'])->firstOrFail();
 
             $token = Str::random(40);
             $domain = URL::to('/');
@@ -227,7 +228,7 @@ class UserController extends Controller
 
             $data = [
                 "url" => $url,
-                "email" => $user->email,
+                "email" => $data['email'],
                 "title" => "Reset Password",
                 "body" => "Please click below here to reset your password"
             ];
@@ -243,19 +244,51 @@ class UserController extends Controller
                 ]
             );
 
-            RateLimiter::hit('forgetPassword:' . $request->email);
+            RateLimiter::hit('forgetPassword:' . $request->get('email'));
 
             return response()->json([
                 "success" => true,
                 "message" => "Email sent successfully"
             ]);
         } catch (\Exception $exception) {
-            Log::error($exception->getMessage());
             throw new HttpResponseException(\response([
                 "success" => false,
                 "message" => "Failed to send email"
             ], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
+    }
+
+    public function resetPassword(Request $request): View
+    {
+        try {
+            $data = PasswordReset::query()->where('token', $request->token)->firstOrFail();
+
+            $user = User::query()->where('email', $data->email)->firstOrFail();
+
+            return view('resetPassword', compact('user'));
+        } catch (\Exception $exception) {
+            Log::error($exception->getMessage());
+            throw new HttpResponseException(response([
+                "success" => false,
+                "message" => "Invalid token"
+            ], Response::HTTP_NOT_FOUND));
+        }
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $user = User::query()->find($data['id']);
+        $user->password = $data['password'];
+        $user->save();
+
+        PasswordReset::query()->where('email', $user->email)->first()->delete();
+
+        return response()->json([
+            "status" => true,
+            "message" => "Success to update password"
+         ]);
     }
 
     public function respondWithToken(string $token): JsonResponse

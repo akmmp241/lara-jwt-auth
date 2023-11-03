@@ -31,3 +31,9 @@ Route::get('/profile', function () {
 });
 
 Route::get('/verify-mail/{token}', [UserController::class, 'verifyEmail'])->name('verify-email');
+
+Route::get('/forget-password', function () {
+    return view('forgetPassword');
+})->name('forget-password');
+
+Route::get('/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
